@@ -1,18 +1,42 @@
 package analizador;
 
 import java_cup.runtime.Symbol;
+import java.util.Stack;
 
 parser code
 {:
+    private TablaSimbolos tablaSimbolos = new TablaSimbolos();
+    private Stack<String> ambitos = new Stack<>();
     private Symbol s;
-    
+    private ManejadorErrores manejadorErrores = new ManejadorErrores();
+
     public void syntax_error(Symbol s){
         this.s = s;
+        manejadorErrores.agregarError(s.left + 1, "Error sintáctico: " + s.value);
     }
 
     public Symbol getS(){
         return this.s;
     }
+
+    public boolean hayErrores() {
+        return manejadorErrores.hayErrores();
+    }
+    
+    public void imprimirErrores() {
+        manejadorErrores.imprimirErrores();
+    }
+
+    private void verificarTipo(String id, String tipoEsperado, int linea) {
+        TablaSimbolos.Simbolo sim = tablaSimbolos.buscarSimbolo(id);
+        if (sim == null) {
+            manejadorErrores.agregarError(linea, "Variable '" + id + "' no declarada");
+        } else if (!sim.getTipo().equals(tipoEsperado)) {
+            manejadorErrores.agregarError(linea, "Tipo incompatible para '" + id + 
+                             "'. Esperado: " + tipoEsperado + ", encontrado: " + sim.getTipo());
+        }
+    }
+
 :};
 
 terminal Linea, Comillas, T_dato, Int, Cadena, If, Else, Do, While, For,
@@ -31,6 +55,7 @@ non terminal INICIO, SENTENCIA, DECLARACION, DECLARACION_FOR, IF, IF_ELSE,
 start with INICIO;
 
 INICIO ::= 
+    Public Static Void Main Parentesis_a Parentesis_c Llave_a {: ambitos.push("main"); :} SENTENCIA Llave_c {: ambitos.pop(); :} |
     Public Static Void Main Parentesis_a Parentesis_c Llave_a SENTENCIA Llave_c |
     Public Static Void Main Parentesis_a Parentesis_c Llave_a Llave_c |
     ENCAPSULAMIENTO DATO Identificador Parentesis_a Parentesis_c Llave_a SENTENCIA Llave_c |
@@ -86,6 +111,22 @@ SENTENCIA ::=
     FOR
 ;
 DECLARACION ::= 
+    T_dato Identificador P_coma {: 
+        String tipo = (String)((Symbol)stack(-2)).value;
+        String id = (String)((Symbol)stack(-1)).value;
+        if (tablaSimbolos.existeSimbolo(id)) {
+            manejadorErrores.agregarError(((Symbol)stack(-1)).left + 1, 
+                "Variable '" + id + "' ya declarada");
+        } else {
+            tablaSimbolos.agregarSimbolo(id, tipo, ambitos.peek());
+        }
+    :} |
+    Int Identificador P_coma {: 
+        tablaSimbolos.agregarSimbolo((String)((Symbol)stack(-1)).value, "int", ambitos.peek()); 
+    :} | 
+    Int Identificador Op_atribucion Numero P_coma {: 
+        tablaSimbolos.agregarSimbolo((String)((Symbol)stack(-3)).value, "int", ambitos.peek()); 
+    :} |
     Int Identificador P_coma | 
     Int Identificador Op_atribucion Numero P_coma |
     Int Identificador Igual Numero P_coma |
@@ -107,7 +148,7 @@ DECLARACION ::=
 ;
 
 
-IF ::= If Parentesis_a SENTENCIA_BOOLEANA Parentesis_c Llave_a SENTENCIA Llave_c
+IF ::= If Parentesis_a SENTENCIA_BOOLEANA Parentesis_c Llave_a {: ambitos.push("if"); :} SENTENCIA Llave_c {: ambitos.pop(); :}
 ;
 SENTENCIA_BOOLEANA ::= 
     Op_booleano | 

@@ -3,13 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Tokens.java</file>
-            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Lexer.flex</file>
-            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/LexerCup.java</file>
-            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/LexerCup.flex</file>
-            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/frmPrincipal.java</file>
-            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Sintax.cup</file>
             <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Sintax.java</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Sintax.cup</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/sym.java</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/TablaSimbolos.java</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Lexer.java</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Lexer.flex</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/leerArchivo.java</file>
+            <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/LexerCup.flex</file>
             <file>file:/C:/Users/rodri/OneDrive/Documentos/NetBeansProjects/analizadorLexico/src/analizador/Principal.java</file>
         </group>
     </open-files>

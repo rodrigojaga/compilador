@@ -1,8 +1,10 @@
-
 package analizador;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +27,23 @@ public class Principal {
                 + "analizador\\Sintax.cup"
         };
         generarLexer(ruta1,ruta2,rutas);
-        
+        analizarSemanticamente();
+    }
+    
+    public static void analizarSemanticamente() throws Exception {
+        String rutaArchivo = "D:/caso_1.txt";
+        Reader reader = new BufferedReader(new FileReader(rutaArchivo));
+        LexerCup lexer = new LexerCup(reader);
+        Sintax parser = new Sintax(lexer);
+
+        parser.parse();
+
+        if (parser.getS() != null || parser.hayErrores()) {
+            System.err.println("Se encontraron errores:");
+            parser.imprimirErrores();
+        } else {
+            System.out.println("Compilación exitosa sin errores");
+        }
     }
     
     public static void generarLexer(String ruta1, String ruta2, String[] rutas) throws IOException, Exception{
