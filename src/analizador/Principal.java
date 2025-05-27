@@ -27,24 +27,24 @@ public class Principal {
                 + "analizador\\Sintax.cup"
         };
         generarLexer(ruta1,ruta2,rutas);
-        analizarSemanticamente();
+        //analizarSemanticamente();
     }
     
-    public static void analizarSemanticamente() throws Exception {
-        String rutaArchivo = "D:/caso_1.txt";
-        Reader reader = new BufferedReader(new FileReader(rutaArchivo));
-        LexerCup lexer = new LexerCup(reader);
-        Sintax parser = new Sintax(lexer);
-
-        parser.parse();
-
-        if (parser.getS() != null || parser.hayErrores()) {
-            System.err.println("Se encontraron errores:");
-            parser.imprimirErrores();
-        } else {
-            System.out.println("Compilación exitosa sin errores");
-        }
-    }
+//    public static void analizarSemanticamente() throws Exception {
+//        String rutaArchivo = "D:/caso_1.txt";
+//        Reader reader = new BufferedReader(new FileReader(rutaArchivo));
+//        LexerCup lexer = new LexerCup(reader);
+//        Sintax parser = new Sintax(lexer);
+//
+//        parser.parse();
+//
+//        if (parser.getS() != null || parser.hayErrores()) {
+//            System.err.println("Se encontraron errores:");
+//            parser.imprimirErrores();
+//        } else {
+//            System.out.println("Compilación exitosa sin errores");
+//        }
+//    }
     
     public static void generarLexer(String ruta1, String ruta2, String[] rutas) throws IOException, Exception{
         File archivo; 

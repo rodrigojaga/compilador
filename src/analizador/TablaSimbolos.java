@@ -21,7 +21,7 @@ public class TablaSimbolos {
         return tabla.containsKey(nombre);
     }
 
-    public class Simbolo {
+    public static class Simbolo {
         private String nombre;
         private String tipo;
         private String ambito;
@@ -32,10 +32,8 @@ public class TablaSimbolos {
             this.ambito = ambito;
         }
 
-        // Getters y setters
         public String getNombre() { return nombre; }
         public String getTipo() { return tipo; }
         public String getAmbito() { return ambito; }
     }
-    
 }
