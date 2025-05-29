@@ -30,7 +30,11 @@ espacio=[ ,\t,\r,\n]+
 ( "\"" ) {return new Symbol(sym.Comillas, yychar, yyline, yytext());}
 
 /* Tipos de datos */
-( byte | char | long | float | double | bool) {return new Symbol(sym.T_dato, yychar, yyline, yytext());}
+( "float" ) {return new Symbol(sym.Float, yychar, yyline, yytext());}
+( "double" ) {return new Symbol(sym.Doub, yychar, yyline, yytext());}
+( "boolean" ) {return new Symbol(sym.Bool, yychar, yyline, yytext());}
+( "char" ) {return new Symbol(sym.Char, yychar, yyline, yytext());}
+
 
 /* Tipo de dato Int (Para el main) */
 ( "int" ) {return new Symbol(sym.Int, yychar, yyline, yytext());}

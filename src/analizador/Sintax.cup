@@ -7,10 +7,10 @@ import java.util.List;
 
 parser code 
 {:
-    private TablaSimbolos tablaSimbolos = new TablaSimbolos();
-    private Stack<String> ambitos = new Stack<>();
-    private List<String> erroresSemanticos = new ArrayList<>();
-    private Symbol s;
+    public TablaSimbolos tablaSimbolos = new TablaSimbolos();
+    public Stack<String> ambitos = new Stack<>();
+    public List<String> erroresSemanticos = new ArrayList<>();
+    public Symbol s;
     
     public void syntax_error(Symbol s) {
         this.s = s;
@@ -34,11 +34,11 @@ parser code
         }
     }
     
-    private void agregarErrorSemantico(int linea, String mensaje) {
+    public void agregarErrorSemantico(int linea, String mensaje) {
         erroresSemanticos.add("Error semántico [Línea " + linea + "]: " + mensaje);
     }
     
-    private void declararVariable(String id, String tipo, int linea) {
+    public void declararVariable(String id, String tipo, int linea) {
         if (tablaSimbolos.existeSimbolo(id)) {
             agregarErrorSemantico(linea, "Variable '" + id + "' ya declarada");
         } else {
@@ -46,38 +46,62 @@ parser code
         }
     }
     
-    private void verificarVariable(String id, int linea) {
+    public void verificarVariable(String id, int linea) {
         if (!tablaSimbolos.existeSimbolo(id)) {
             agregarErrorSemantico(linea, "Variable '" + id + "' no declarada");
         }
     }
     
-    private void verificarTipo(String id, String tipoEsperado, int linea) {
+    public void verificarTipo(String id, String tipoEsperado, int linea) {
         TablaSimbolos.Simbolo sim = tablaSimbolos.buscarSimbolo(id);
         if (sim != null && !sim.getTipo().equals(tipoEsperado)) {
             agregarErrorSemantico(linea, "Tipo incompatible en '" + id + "'. Esperado: " + 
                 tipoEsperado + ", encontrado: " + sim.getTipo());
         }
     }
+    
+    public String obtenerTipoDeValor(Object val) {
+        if (val instanceof Integer) return "int";
+        if (val instanceof Double) return "double";
+        if (val instanceof Float) return "float";
+        if (val instanceof Boolean) return "boolean";
+        if (val instanceof String) {
+            // Para literales string entre comillas
+            if (((String)val).startsWith("\"")) return "String";
+            // Para identificadores (buscar en tabla de símbolos)
+            TablaSimbolos.Simbolo s = tablaSimbolos.buscarSimbolo((String)val);
+            return (s != null) ? s.getTipo() : "desconocido";
+        }
+        return "desconocido";
+    }
+    
+    public boolean esAsignacionValida(String tipoVar, String tipoValor) {
+        // Casos básicos de compatibilidad
+        if (tipoVar.equals(tipoValor)) return true;
+        if (tipoVar.equals("double") && tipoValor.equals("int")) return true;
+        if (tipoVar.equals("Object")) return true; // Acepta cualquier tipo
+
+        return false;
+    }
 :};
 
 /* Terminales simplificados */
 terminal 
     /* Tipos de datos */
-    Int, T_dato, Cadena,
+    Int, Float, Doub, Bool, Char, Cadena,
     
     /* Palabras reservadas */
     If, Else, Do, While, For, 
-    Public, Static, Void, Main, Class,
-    Private, Default, Protect,
+    Public, Static, Void, Main, Class, Interface, Enum, Clase,
+    Private, Default, Protect, ERROR,
     
     /* Operadores */
     Igual, Suma, Resta, Multiplicacion, Division,
-    Op_relacional, Op_atribucion, Op_booleano,
+    Op_relacional, Op_atribucion, Op_booleano, Op_logico, Op_incremento,
     
     /* Símbolos */
     Parentesis_a, Parentesis_c, Llave_a, Llave_c, 
-    P_coma, Comillas,
+    P_coma, Comillas, Corchete_a, Corchete_c,
     
     /* Identificadores y valores */
     Identificador, Numero
@@ -104,18 +128,18 @@ INICIO ::= CLASE;
 
 CLASE ::= 
     Public Class Identificador Llave_a 
-        {: ambitos.push("clase"); :}
+        {: parser.ambitos.push("clase"); :}
         CUERPO_CLASE 
-        {: ambitos.pop(); :}
+        {: parser.ambitos.pop(); :}
     Llave_c
 ;
 
 CUERPO_CLASE ::=
     Public Static Void Main Parentesis_a Cadena Identificador Parentesis_c 
     Llave_a 
-        {: ambitos.push("main"); :}
+        {: parser.ambitos.push("main"); :}
         SENTENCIAS 
-        {: ambitos.pop(); :}
+        {: parser.ambitos.pop(); :}
     Llave_c
     | SENTENCIAS
 ;
@@ -132,41 +156,63 @@ SENTENCIA ::=
 ;
 
 BLOQUE ::= 
-    Llave_a {: ambitos.push("bloque"); :} 
+    Llave_a {: parser.ambitos.push("bloque"); :} 
     SENTENCIAS 
-    {: ambitos.pop(); :} 
+    {: parser.ambitos.pop(); :} 
     Llave_c
 ;
 
 DECLARACION ::= 
     TIPO_VAR:tipo Identificador:id 
     (P_coma 
-        {: declararVariable((String)id.value, (String)tipo.value, id.left + 1); :}
+        {: 
+            parser.declararVariable(id.toString(), 
+                           tipo.toString(), 
+                           ((Symbol)id).left + 1); 
+        :}
     | Igual VALOR:val P_coma 
         {: 
-            declararVariable((String)id.value, (String)tipo.value, id.left + 1);
-            // Verificación de tipos aquí
+            // 1. Declarar la variable
+            parser.declararVariable(id.toString(), 
+                           tipo.toString(), 
+                           ((Symbol)id).left + 1);
+
+            // 2. Verificación de tipos
+            String tipoDeclarado = tipo.toString();
+            String tipoValor = parser.obtenerTipoDeValor(val);  // Función auxiliar
+
+            if (!parser.esAsignacionValida(tipoDeclarado, tipoValor)) {
+                parser.agregarErrorSemantico(((Symbol)id).left + 1,
+                    "Error de tipos: no se puede asignar " + tipoValor + 
+                    " a variable de tipo " + tipoDeclarado);
+            }
         :}
     )
 ;
 
 TIPO_VAR ::= 
     Int {: RESULT = "int"; :}
-    | T_dato {: RESULT = (String)((Symbol)stack(0)).value; :}
+    | Doub {: RESULT = "double"; :}
+    | Float {: RESULT = "float"; :}
+    | Char {: RESULT = "char"; :}
+    | Bool {: RESULT = "bool"; :}
+    /*| T_dato {: RESULT = parser.stack(-1).value.toString(); :}*/
     | Cadena {: RESULT = "String"; :}
 ;
 
 ASIGNACION ::= 
     Identificador:id Op_atribucion VALOR:val P_coma 
         {: 
-            verificarVariable((String)id.value, id.left + 1);
+            parser.verificarVariable(id.toString(), 
+                            ((Symbol)id).left + 1);
             // Verificación de tipos aquí
         :}
 ;
 
 VALOR ::= 
     Identificador:id 
-        {: verificarVariable((String)id.value, id.left + 1); :}
+        {: parser.verificarVariable(id.toString(), 
+                           ((Symbol)id).left + 1); :}
     | Numero 
     | Op_booleano 
     | Comillas Identificador Comillas 
@@ -176,7 +222,8 @@ VALOR ::=
 CONDICION ::= 
     Op_booleano 
     | Identificador:id 
-        {: verificarVariable((String)id.value, id.left + 1); :}
+        {: parser.verificarVariable(id.toString(), 
+                           ((Symbol)id).left + 1); :}
     | EXPRESION Op_relacional EXPRESION
 ;
 
