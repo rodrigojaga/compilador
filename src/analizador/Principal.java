@@ -26,27 +26,21 @@ public class Principal {
                 + "\\NetBeansProjects\\analizadorLexico\\src\\"
                 + "analizador\\Sintax.cup"
         };
-        generarLexer(ruta1,ruta2,rutas);
+        
+        String[] rutas2 = {
+            "-parser",
+            "SintaxSem",
+            "C:\\Users\\rodri\\OneDrive\\Documentos"
+                + "\\NetBeansProjects\\analizadorLexico\\src\\"
+                + "analizador\\SintaxSem.cup"
+        };
+        
+        generarLexer(ruta1,ruta2,rutas, rutas2);
         //analizarSemanticamente();
     }
+   
     
-//    public static void analizarSemanticamente() throws Exception {
-//        String rutaArchivo = "D:/caso_1.txt";
-//        Reader reader = new BufferedReader(new FileReader(rutaArchivo));
-//        LexerCup lexer = new LexerCup(reader);
-//        Sintax parser = new Sintax(lexer);
-//
-//        parser.parse();
-//
-//        if (parser.getS() != null || parser.hayErrores()) {
-//            System.err.println("Se encontraron errores:");
-//            parser.imprimirErrores();
-//        } else {
-//            System.out.println("Compilación exitosa sin errores");
-//        }
-//    }
-    
-    public static void generarLexer(String ruta1, String ruta2, String[] rutas) throws IOException, Exception{
+    public static void generarLexer(String ruta1, String ruta2, String[] rutas, String[] rutas2) throws IOException, Exception{
         File archivo; 
         archivo = new File(ruta1);
         JFlex.Main.generate(archivo);
@@ -54,6 +48,7 @@ public class Principal {
         JFlex.Main.generate(archivo);
         
         java_cup.Main.main(rutas);
+        java_cup.Main.main(rutas2);
         
         Path rutaSym = Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\sym.java");
@@ -71,22 +66,30 @@ public class Principal {
         Path rutaSintax = Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\Sintax.java");
         
+        Path rutaSintaxSem = Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\SintaxSem.java");
+        
         if(Files.exists(rutaSintax))
             Files.delete(rutaSintax);
         
-        Files.move(
-                Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
-                + "\\NetBeansProjects\\analizadorLexico\\Sintax.java"), 
-                Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
-                + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\Sintax.java")
-        );
-    }
+            Files.move(
+                    Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                    + "\\NetBeansProjects\\analizadorLexico\\Sintax.java"), 
+                    Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                    + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\Sintax.java")
+            );
+            
+        if(Files.exists(rutaSintaxSem))
+            Files.delete(rutaSintaxSem);
+        
+            Files.move(
+                    Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                    + "\\NetBeansProjects\\analizadorLexico\\SintaxSem.java"), 
+                    Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                    + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\SintaxSem.java")
+            );
+        }
+    
+        
 }
 
-// En Lexer.flex
-/*
--?{D}+(\.{D}+)? {lexeme=yytext(); return Numero;}
--? → Opcionalmente, permite un signo negativo (-).
-{D}+ → Uno o más dígitos (ej. 123).
-(\.{D}+)? → Opcionalmente, permite decimales (. seguido de uno o más dígitos, como 3.14).
-*/

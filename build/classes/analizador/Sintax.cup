@@ -1,252 +1,157 @@
 package analizador;
 
 import java_cup.runtime.Symbol;
-import java.util.Stack;
-import java.util.ArrayList;
-import java.util.List;
 
-parser code 
+parser code
 {:
-    public TablaSimbolos tablaSimbolos = new TablaSimbolos();
-    public Stack<String> ambitos = new Stack<>();
-    public List<String> erroresSemanticos = new ArrayList<>();
-    public Symbol s;
+    private Symbol s;
     
-    public void syntax_error(Symbol s) {
+    public void syntax_error(Symbol s){
         this.s = s;
-        System.out.println("Error sintáctico en línea " + (s.left+1));
     }
 
-    public Symbol getS() {
+    public Symbol getS(){
         return this.s;
-    }
-    
-    public boolean hayErrores() {
-        return this.s != null || !erroresSemanticos.isEmpty();
-    }
-    
-    public List<String> imprimirErrores() {
-        return erroresSemanticos;
-    }
-    
-    public void agregarErrorSemantico(int linea, String mensaje) {
-        erroresSemanticos.add("Error semántico [Línea " + linea + "]: " + mensaje);
-    }
-    
-    public void declararVariable(String id, String tipo, int linea) {
-        if (tablaSimbolos.existeSimbolo(id)) {
-            agregarErrorSemantico(linea, "Variable '" + id + "' ya declarada");
-        } else {
-            tablaSimbolos.agregarSimbolo(id, tipo, ambitos.peek());
-        }
-    }
-    
-    public void verificarVariable(String id, int linea) {
-        if (!tablaSimbolos.existeSimbolo(id)) {
-            agregarErrorSemantico(linea, "Variable '" + id + "' no declarada");
-        }
-    }
-    
-    public void verificarTipo(String id, String tipoEsperado, int linea) {
-        TablaSimbolos.Simbolo sim = tablaSimbolos.buscarSimbolo(id);
-        if (sim != null && !sim.getTipo().equals(tipoEsperado)) {
-            agregarErrorSemantico(linea, "Tipo incompatible en '" + id + "'. Esperado: " + 
-                tipoEsperado + ", encontrado: " + sim.getTipo());
-        }
-    }
-    
-    public String obtenerTipoDeValor(Object val) {
-        if (val instanceof Integer) return "int";
-        if (val instanceof Double) return "double";
-        if (val instanceof Float) return "float";
-        if (val instanceof Boolean) return "boolean";
-        if (val instanceof String) {
-            // Para literales string entre comillas
-            if (((String)val).startsWith("\"")) return "String";
-            // Para identificadores (buscar en tabla de símbolos)
-            TablaSimbolos.Simbolo s = tablaSimbolos.buscarSimbolo((String)val);
-            return (s != null) ? s.getTipo() : "desconocido";
-        }
-        return "desconocido";
-    }
-    
-    public boolean esAsignacionValida(String tipoVar, String tipoValor) {
-        // Casos básicos de compatibilidad
-        if (tipoVar.equals(tipoValor)) return true;
-        if (tipoVar.equals("double") && tipoValor.equals("int")) return true;
-        if (tipoVar.equals("Object")) return true; // Acepta cualquier tipo
-
-        return false;
     }
 :};
 
-/* Terminales simplificados */
-terminal 
-    /* Tipos de datos */
-    Int, Float, Doub, Bool, Char, Cadena,
-    
-    /* Palabras reservadas */
-    If, Else, Do, While, For, 
-    Public, Static, Void, Main, Class, Interface, Enum, Clase,
-    Private, Default, Protect, ERROR,
-    
-    /* Operadores */
-    Igual, Suma, Resta, Multiplicacion, Division,
-    Op_relacional, Op_atribucion, Op_booleano, Op_logico, Op_incremento,
-    
-    /* Símbolos */
-    Parentesis_a, Parentesis_c, Llave_a, Llave_c, 
-    P_coma, Comillas, Corchete_a, Corchete_c,
-    
-    /* Identificadores y valores */
-    Identificador, Numero
+terminal Linea, Comillas, Doub, Float, Bool, Char, Int, Cadena, If, Else, Do, While, For,
+    Igual, Suma, Resta, Multiplicacion, Division, Op_logico, Op_relacional,
+    Op_atribucion, Op_incremento, Op_booleano, Parentesis_a, Parentesis_c,
+    Llave_a, Llave_c, Corchete_a, Corchete_c, Public, Static, Void, Main, P_coma, Identificador,
+    Numero, ERROR,
+    Clase, Enum, Interface,
+    Default, Private, Protect
 ;
-
-/* No terminales reorganizados */
-non terminal 
-    INICIO, CLASEN, CUERPO_CLASE,
-    SENTENCIAS, SENTENCIA, 
-    DECLARACION, ASIGNACION, TIPO_VAR, 
-    EXPRESION, VALOR, CONDICION,
-    BLOQUE
-;
-
-/* Precedencia de operadores */
-precedence left Op_relacional;
-precedence left Suma, Resta;
-precedence left Multiplicacion, Division;
+    
+non terminal INICIO, SENTENCIA, DECLARACION, DECLARACION_FOR, IF, IF_ELSE,
+    WHILE, DO_WHILE, FOR, SENTENCIA_BOOLEANA, SENTENCIA_FOR, ENCAPSULAMIENTO, DATO,
+    OPERACION, TIPO, VALOR;
 
 start with INICIO;
 
-/* Gramática simplificada */
-INICIO ::= CLASEN;
-
-CLASEN ::= 
-    Public Clase Identificador Llave_a 
-        {: parser.ambitos.push("clase"); :}
-        CUERPO_CLASE 
-        {: parser.ambitos.pop(); :}
-    Llave_c
+INICIO ::= 
+    Public Static Void Main Parentesis_a Parentesis_c Llave_a SENTENCIA Llave_c |
+    Public Static Void Main Parentesis_a Parentesis_c Llave_a Llave_c |
+    ENCAPSULAMIENTO DATO Identificador Parentesis_a Parentesis_c Llave_a SENTENCIA Llave_c |
+    ENCAPSULAMIENTO DATO Identificador Parentesis_a Parentesis_c Llave_a Llave_c |
+    ENCAPSULAMIENTO TIPO Identificador Parentesis_a Parentesis_c Llave_a Llave_c |
+    ENCAPSULAMIENTO TIPO Identificador Parentesis_a Parentesis_c Llave_a SENTENCIA Llave_c
 ;
 
-CUERPO_CLASE ::=
-    Public Static Void Main Parentesis_a Cadena Identificador Parentesis_c 
-    Llave_a 
-        {: parser.ambitos.push("main"); :}
-        SENTENCIAS 
-        {: parser.ambitos.pop(); :}
-    Llave_c
-    | SENTENCIAS
+TIPO ::=
+    Clase |
+    Enum |
+    Interface
 ;
 
-SENTENCIAS ::= 
-    SENTENCIAS SENTENCIA 
-    | SENTENCIA
+ENCAPSULAMIENTO ::=
+    Public |
+    Private |
+    Default |
+    Protect
 ;
 
+DATO ::=
+    Int |
+    Doub |
+    Float |
+    Bool |
+    Char |
+    Cadena |
+    Void
+;
+
+VALOR ::=
+    Op_booleano |
+    Numero |
+    Identificador
+;
+
+
+OPERACION ::=
+    Suma |
+    Resta |
+    Division |
+    Multiplicacion
+;
 SENTENCIA ::= 
-    DECLARACION 
-    | ASIGNACION 
-    | BLOQUE
-    | ERROR P_coma
-    {: 
-        parser.agregarErrorSemantico(0, "Sentencia no válida, error sintáctico ignorado.");
-    :}
+    SENTENCIA DECLARACION |
+    DECLARACION |
+    SENTENCIA IF | 
+    IF |
+    SENTENCIA IF_ELSE |
+    IF_ELSE |
+    SENTENCIA WHILE |
+    WHILE |
+    SENTENCIA DO_WHILE
+    DO_WHILE |
+    SENTENCIA FOR |
+    FOR
+;
+DECLARACION ::= 
+    Int Identificador P_coma | 
+    Int Identificador Op_atribucion Numero P_coma |
+    Int Identificador Igual Numero P_coma |
+    Int Identificador Op_incremento P_coma | 
+    Int Op_incremento Identificador P_coma | 
+    Doub Identificador P_coma | 
+    Doub Identificador Op_atribucion Numero P_coma |
+    Doub Identificador Igual Numero P_coma |
+    Doub Identificador Op_incremento P_coma | 
+    Doub Op_incremento Identificador P_coma | 
+    Doub Identificador Igual Op_booleano P_coma |
+    Float Identificador P_coma | 
+    Float Identificador Op_atribucion Numero P_coma |
+    Float Identificador Igual Numero P_coma |
+    Float Identificador Op_incremento P_coma | 
+    Float Op_incremento Identificador P_coma | 
+    Float Identificador Igual Op_booleano P_coma |
+    Bool Identificador P_coma | 
+    Bool Identificador Op_atribucion Numero P_coma |
+    Bool Identificador Igual Numero P_coma |
+    Bool Identificador Op_incremento P_coma | 
+    Bool Op_incremento Identificador P_coma | 
+    Bool Identificador Igual Op_booleano P_coma |
+    Cadena Identificador Op_atribucion Comillas Comillas P_coma |
+    Cadena Identificador Igual Comillas Comillas P_coma |
+    Cadena Identificador Op_atribucion Comillas Identificador Comillas P_coma |
+    Cadena Identificador Igual Comillas Identificador Comillas P_coma |
+    Identificador P_coma |
+    Int Identificador Igual Numero OPERACION Numero P_coma
+    
 ;
 
 
-BLOQUE ::= 
-    Llave_a {: parser.ambitos.push("bloque"); :} 
-    SENTENCIAS 
-    {: parser.ambitos.pop(); :} 
-    Llave_c
+IF ::= If Parentesis_a SENTENCIA_BOOLEANA Parentesis_c Llave_a SENTENCIA Llave_c
 ;
-
-DECLARACION ::=
-    TIPO_VAR:tipo Identificador:id 
-        P_coma 
-        {: 
-            parser.declararVariable(id.toString(), tipo.toString(), idleft + 1);
-            
-            
-
-        :}
-    |
-    TIPO_VAR:tipo Identificador:id 
-        Igual VALOR:val P_coma 
-        {:
-            // Declaración
-            parser.declararVariable(id.toString(), tipo.toString(), idleft + 1);
-
-
-            // Verificación de tipos
-            String tipoVar = tipo.toString();
-            String tipoValor = parser.obtenerTipoDeValor(val);
-
-            if (!parser.esAsignacionValida(tipoVar, tipoValor)) {
-                parser.agregarErrorSemantico(idleft + 1,
-                    "Error de tipos: no se puede asignar " + tipoValor + 
-                    " a variable de tipo " + tipoVar);
-            }
-        :}
+SENTENCIA_BOOLEANA ::= 
+    Op_booleano | 
+    Identificador Op_relacional Op_booleano |
+    Identificador Op_relacional Numero |
+    Identificador Op_relacional Identificador |
+    Identificador Op_relacional Comillas Comillas |
+    Identificador Op_relacional Comillas Identificador Comillas
+;
+IF_ELSE ::= If Parentesis_a SENTENCIA_BOOLEANA Parentesis_c Llave_a SENTENCIA Llave_c Else Llave_a SENTENCIA Llave_c
+;
+WHILE ::= While Parentesis_a SENTENCIA_BOOLEANA Parentesis_c Llave_a SENTENCIA Llave_c
+;
+DO_WHILE ::= Do Llave_a SENTENCIA Llave_c While Parentesis_a SENTENCIA_BOOLEANA Parentesis_c P_coma
+;
+FOR ::= For Parentesis_a SENTENCIA_FOR Parentesis_c Llave_a SENTENCIA Llave_c
+;
+SENTENCIA_FOR ::=
+    Int Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
+    Doub Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
+    Bool Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
+    Float Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
+    Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR
+;
+DECLARACION_FOR ::= 
+    Identificador Op_atribucion Numero |
+    Identificador Op_incremento | 
+    Op_incremento Identificador
 ;
 
 
-TIPO_VAR ::= 
-    Int {: RESULT = "int"; :}
-    | Doub {: RESULT = "double"; :}
-    | Float {: RESULT = "float"; :}
-    | Char {: RESULT = "char"; :}
-    | Bool {: RESULT = "bool"; :}
-    /*| T_dato {: RESULT = parser.stack(-1).value.toString(); :}*/
-    | Cadena {: RESULT = "String"; :}
-;
-
-ASIGNACION ::= 
-    Identificador:id Op_atribucion VALOR:val P_coma 
-        {: 
-            parser.verificarVariable(id.toString(), 
-                            idleft + 1);
-            // Verificación de tipos aquí
-        :}
-;
-
-VALOR ::= 
-    Identificador:id 
-        {: 
-            parser.verificarVariable(id.toString(), idleft + 1);
-            RESULT = id.toString(); 
-        :}
-    | Numero:n 
-        {: 
-            try {
-                int numero = Integer.parseInt(n.toString());
-                RESULT = numero;
-            } catch (NumberFormatException e) {
-                RESULT = n.toString(); // fallback
-            }
-        :}
-    | Op_booleano:b 
-        {: RESULT = b.toString(); :}
-    | Comillas Identificador:id Comillas 
-        {: RESULT = "\"" + id.toString() + "\""; :}
-    | Comillas Comillas
-        {: RESULT = "\"\""; :}
-;
-
-
-CONDICION ::= 
-    Op_booleano 
-    | Identificador:id 
-        {: parser.verificarVariable(id.toString(), 
-                           idleft + 1); :}
-    | EXPRESION Op_relacional EXPRESION
-;
-
-EXPRESION ::= 
-    EXPRESION Suma EXPRESION
-    | EXPRESION Resta EXPRESION
-    | EXPRESION Multiplicacion EXPRESION
-    | EXPRESION Division EXPRESION
-    | VALOR
-;
