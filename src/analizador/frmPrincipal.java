@@ -453,16 +453,13 @@ public class frmPrincipal extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jButton1)
                         .addGap(635, 635, 635)
-                        .addComponent(txtLimpiar)
-                        .addGap(14, 14, 14)))
-                .addContainerGap(6, Short.MAX_VALUE))
+                        .addComponent(txtLimpiar)))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -629,32 +626,38 @@ public class frmPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_txtLimpiarActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        String ST = txtLexDe.getText();
-        SintaxSem s = new SintaxSem(new analizador.LexerCup(new StringReader(ST)));
 
-        try {
-            s.parse();
+        //SemanticAnalizer.analyzeFromTextArea(txtLexDe.getText());
+//        String ST = txtLexDe.getText();
+//        SintaxSem s = new SintaxSem(new analizador.LexerCup(new StringReader(ST)));
+//
+//        try {
+//            s.parse();
+//
+//            if (s.hayErrores()) {
+//                StringBuilder sb = new StringBuilder("Errores encontrados:\n");
+//                for (String error : s.erroresSemanticos) {
+//                    sb.append(error).append("\n");
+//                }
+//                // También puede haber error sintáctico
+//                if (s.getS() != null) {
+//                    sb.append("Error sintáctico en línea ").append(s.getS().left + 1).append("\n");
+//                }
+//                txtAnalisisSem.setText(sb.toString());
+//            } else {
+//                txtAnalisisSem.setText("Sin errores");
+//            }
+//
+//        } catch (Exception ex) {
+//            txtAnalisisSem.setText("Se produjo un error durante el análisis:\n" + ex.getMessage());
+//            ex.printStackTrace(); // También útil para consola
+//        }
 
-            if (s.hayErrores()) {
-                StringBuilder sb = new StringBuilder("Errores encontrados:\n");
-                for (String error : s.erroresSemanticos) {
-                    sb.append(error).append("\n");
-                }
-                // También puede haber error sintáctico
-                if (s.getS() != null) {
-                    sb.append("Error sintáctico en línea ").append(s.getS().left + 1).append("\n");
-                }
-                txtAnalisisSem.setText(sb.toString());
-            } else {
-                txtAnalisisSem.setText("Sin errores");
-            }
-
-        } catch (Exception ex) {
-            txtAnalisisSem.setText("Se produjo un error durante el análisis:\n" + ex.getMessage());
-            ex.printStackTrace(); // También útil para consola
-        }
+           
     }//GEN-LAST:event_jButton4ActionPerformed
-
+    public void accederTxtSem(String resultado){
+        txtAnalisisSem.setText(txtAnalisisSem.getText()+"\n"+resultado);
+    }
     
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -712,15 +715,11 @@ public class frmPrincipal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel8;
-    private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTextArea txtAnalisisSem;
+    public javax.swing.JTextArea txtAnalisisSem;
     private javax.swing.JTextArea txtAnalisisSin;
     private javax.swing.JTextArea txtLexDe;
     private javax.swing.JTextArea txtLexIzq;

@@ -48,7 +48,7 @@ public class Principal {
         JFlex.Main.generate(archivo);
         
         java_cup.Main.main(rutas);
-        java_cup.Main.main(rutas2);
+        //java_cup.Main.main(rutas2);
         
         Path rutaSym = Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\sym.java");
