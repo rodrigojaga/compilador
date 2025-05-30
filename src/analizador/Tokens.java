@@ -20,7 +20,11 @@ public enum Tokens {
     
     Linea,
     Comillas,
-    T_dato,
+    Int,
+    Float,
+    Char,
+    Bool,
+    Doub,
     Cadena,
     If,
     Else,

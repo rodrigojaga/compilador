@@ -15,7 +15,7 @@ parser code
     }
 :};
 
-terminal Linea, Comillas, T_dato, Int, Cadena, If, Else, Do, While, For,
+terminal Linea, Comillas, Doub, Float, Char, Bool, Int, Cadena, If, Else, Do, While, For,
     Igual, Suma, Resta, Multiplicacion, Division, Op_logico, Op_relacional,
     Op_atribucion, Op_incremento, Op_booleano, Parentesis_a, Parentesis_c,
     Llave_a, Llave_c, Corchete_a, Corchete_c, Public, Static, Void, Main, P_coma, Identificador,
@@ -53,7 +53,11 @@ ENCAPSULAMIENTO ::=
 ;
 
 DATO ::=
-    T_dato |
+    Int |
+    Char |
+    Doub |
+    Float |
+    Bool |
     Cadena |
     Void
 ;
@@ -91,12 +95,12 @@ DECLARACION ::=
     Int Identificador Igual Numero P_coma |
     Int Identificador Op_incremento P_coma | 
     Int Op_incremento Identificador P_coma | 
-    T_dato Identificador P_coma | 
-    T_dato Identificador Op_atribucion Numero P_coma |
-    T_dato Identificador Igual Numero P_coma |
-    T_dato Identificador Op_incremento P_coma | 
-    T_dato Op_incremento Identificador P_coma | 
-    T_dato Identificador Igual Op_booleano P_coma |
+    Doub Identificador P_coma | 
+    Doub Identificador Op_atribucion Numero P_coma |
+    Doub Identificador Igual Numero P_coma |
+    Doub Identificador Op_incremento P_coma | 
+    Doub Op_incremento Identificador P_coma | 
+    Doub Identificador Igual Op_booleano P_coma |
     Cadena Identificador Op_atribucion Comillas Comillas P_coma |
     Cadena Identificador Igual Comillas Comillas P_coma |
     Cadena Identificador Op_atribucion Comillas Identificador Comillas P_coma |
@@ -126,7 +130,8 @@ DO_WHILE ::= Do Llave_a SENTENCIA Llave_c While Parentesis_a SENTENCIA_BOOLEANA 
 FOR ::= For Parentesis_a SENTENCIA_FOR Parentesis_c Llave_a SENTENCIA Llave_c
 ;
 SENTENCIA_FOR ::=
-    T_dato Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
+    Int Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
+    Doub Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR |
     Identificador Igual Numero P_coma SENTENCIA_BOOLEANA P_coma DECLARACION_FOR
 ;
 DECLARACION_FOR ::= 

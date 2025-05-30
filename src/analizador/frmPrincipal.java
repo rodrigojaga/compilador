@@ -208,7 +208,10 @@ public class frmPrincipal extends javax.swing.JFrame {
                 case Cadena:
                     resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
                     break;
-                case T_dato:
+                case Int:
+                    resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
+                    break;
+                case Doub:
                     resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
                     break;
                 case If:
