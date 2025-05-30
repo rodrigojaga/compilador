@@ -1,0 +1,254 @@
+package analizador.semantico;
+
+
+import java_cup.runtime.Symbol;
+import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
+
+parser code 
+{:
+    public TablaSimbolos tablaSimbolos = new TablaSimbolos();
+    public Stack<String> ambitos = new Stack<>();
+    public List<String> erroresSemanticos = new ArrayList<>();
+    public Symbol s;
+    
+    public void syntax_error(Symbol s) {
+        this.s = s;
+        System.out.println("Error sintáctico en línea " + (s.left+1));
+    }
+
+    public Symbol getS() {
+        return this.s;
+    }
+    
+    public boolean hayErrores() {
+        return this.s != null || !erroresSemanticos.isEmpty();
+    }
+    
+    public List<String> imprimirErrores() {
+        return erroresSemanticos;
+    }
+    
+    public void agregarErrorSemantico(int linea, String mensaje) {
+        erroresSemanticos.add("Error semántico [Línea " + linea + "]: " + mensaje);
+    }
+    
+    public void declararVariable(String id, String tipo, int linea) {
+        if (tablaSimbolos.existeSimbolo(id)) {
+            agregarErrorSemantico(linea, "Variable '" + id + "' ya declarada");
+        } else {
+            tablaSimbolos.agregarSimbolo(id, tipo, ambitos.peek());
+        }
+    }
+    
+    public void verificarVariable(String id, int linea) {
+        if (!tablaSimbolos.existeSimbolo(id)) {
+            agregarErrorSemantico(linea, "Variable '" + id + "' no declarada");
+        }
+    }
+    
+    public void verificarTipo(String id, String tipoEsperado, int linea) {
+        TablaSimbolos.Simbolo sim = tablaSimbolos.buscarSimbolo(id);
+        if (sim != null && !sim.getTipo().equals(tipoEsperado)) {
+            agregarErrorSemantico(linea, "Tipo incompatible en '" + id + "'. Esperado: " + 
+                tipoEsperado + ", encontrado: " + sim.getTipo());
+        }
+    }
+    
+    public String obtenerTipoDeValor(Object val) {
+        if (val instanceof Integer) return "int";
+        if (val instanceof Double) return "double";
+        if (val instanceof Float) return "float";
+        if (val instanceof Boolean) return "boolean";
+        if (val instanceof String) {
+            // Para literales string entre comillas
+            if (((String)val).startsWith("\"")) return "String";
+            // Para identificadores (buscar en tabla de símbolos)
+            TablaSimbolos.Simbolo s = tablaSimbolos.buscarSimbolo((String)val);
+            return (s != null) ? s.getTipo() : "desconocido";
+        }
+        return "desconocido";
+    }
+    
+    public boolean esAsignacionValida(String tipoVar, String tipoValor) {
+        // Casos básicos de compatibilidad
+        if (tipoVar.equals(tipoValor)) return true;
+        if (tipoVar.equals("double") && tipoValor.equals("int")) return true;
+        if (tipoVar.equals("Object")) return true; // Acepta cualquier tipo
+
+        return false;
+    }
+:};
+
+/* Terminales simplificados */
+terminal 
+    /* Tipos de datos */
+    Int, Float, Doub, Bool, Char, Cadena,
+    
+    /* Palabras reservadas */
+    If, Else, Do, While, For, 
+    Public, Static, Void, Main, Class, Interface, Enum, Clase,
+    Private, Default, Protect, ERROR,
+    
+    /* Operadores */
+    Igual, Suma, Resta, Multiplicacion, Division,
+    Op_relacional, Op_atribucion, Op_booleano, Op_logico, Op_incremento,
+    
+    /* Símbolos */
+    Parentesis_a, Parentesis_c, Llave_a, Llave_c, 
+    P_coma, Comillas, Corchete_a, Corchete_c,
+    
+    /* Identificadores y valores */
+    Identificador, Numero
+;
+
+/* No terminales reorganizados */
+non terminal 
+    INICIO, CLASEN, CUERPO_CLASE,
+    SENTENCIAS, SENTENCIA, 
+    DECLARACION, ASIGNACION, TIPO_VAR, 
+    EXPRESION, VALOR, CONDICION,
+    BLOQUE
+;
+
+/* Precedencia de operadores */
+precedence left Op_relacional;
+precedence left Suma, Resta;
+precedence left Multiplicacion, Division;
+
+start with INICIO;
+
+/* Gramática simplificada */
+INICIO ::= CLASEN;
+
+CLASEN ::= 
+    Public Clase Identificador Llave_a 
+        {: parser.ambitos.push("clase"); :}
+        CUERPO_CLASE 
+        {: parser.ambitos.pop(); :}
+    Llave_c
+;
+
+CUERPO_CLASE ::=
+    Public Static Void Main Parentesis_a Cadena Identificador Parentesis_c 
+    Llave_a 
+        {: parser.ambitos.push("main"); :}
+        SENTENCIAS 
+        {: parser.ambitos.pop(); :}
+    Llave_c
+    | SENTENCIAS
+;
+
+SENTENCIAS ::= 
+    SENTENCIAS SENTENCIA 
+    | SENTENCIA
+;
+
+SENTENCIA ::= 
+    DECLARACION 
+    | ASIGNACION 
+    | BLOQUE
+    | ERROR P_coma
+    {: 
+        parser.agregarErrorSemantico(0, "Sentencia no válida, error sintáctico ignorado.");
+    :}
+;
+
+
+BLOQUE ::= 
+    Llave_a {: parser.ambitos.push("bloque"); :} 
+    SENTENCIAS 
+    {: parser.ambitos.pop(); :} 
+    Llave_c
+;
+
+DECLARACION ::=
+    TIPO_VAR:tipo Identificador:id 
+        P_coma 
+        {: 
+            parser.declararVariable(id.toString(), tipo.toString(), idleft + 1);
+            
+            
+
+        :}
+    |
+    TIPO_VAR:tipo Identificador:id 
+        Igual VALOR:val P_coma 
+        {:
+            // Declaración
+            parser.declararVariable(id.toString(), tipo.toString(), idleft + 1);
+
+
+            // Verificación de tipos
+            String tipoVar = tipo.toString();
+            String tipoValor = parser.obtenerTipoDeValor(val);
+
+            if (!parser.esAsignacionValida(tipoVar, tipoValor)) {
+                parser.agregarErrorSemantico(idleft + 1,
+                    "Error de tipos: no se puede asignar " + tipoValor + 
+                    " a variable de tipo " + tipoVar);
+            }
+        :}
+;
+
+
+TIPO_VAR ::= 
+    Int {: RESULT = "int"; :}
+    | Doub {: RESULT = "double"; :}
+    | Float {: RESULT = "float"; :}
+    | Char {: RESULT = "char"; :}
+    | Bool {: RESULT = "bool"; :}
+    /*| T_dato {: RESULT = parser.stack(-1).value.toString(); :}*/
+    | Cadena {: RESULT = "String"; :}
+;
+
+ASIGNACION ::= 
+    Identificador:id Op_atribucion VALOR:val P_coma 
+        {: 
+            parser.verificarVariable(id.toString(), 
+                            idleft + 1);
+            // Verificación de tipos aquí
+        :}
+;
+
+VALOR ::= 
+    Identificador:id 
+        {: 
+            parser.verificarVariable(id.toString(), idleft + 1);
+            RESULT = id.toString(); 
+        :}
+    | Numero:n 
+        {: 
+            try {
+                int numero = Integer.parseInt(n.toString());
+                RESULT = numero;
+            } catch (NumberFormatException e) {
+                RESULT = n.toString(); // fallback
+            }
+        :}
+    | Op_booleano:b 
+        {: RESULT = b.toString(); :}
+    | Comillas Identificador:id Comillas 
+        {: RESULT = "\"" + id.toString() + "\""; :}
+    | Comillas Comillas
+        {: RESULT = "\"\""; :}
+;
+
+
+CONDICION ::= 
+    Op_booleano 
+    | Identificador:id 
+        {: parser.verificarVariable(id.toString(), 
+                           idleft + 1); :}
+    | EXPRESION Op_relacional EXPRESION
+;
+
+EXPRESION ::= 
+    EXPRESION Suma EXPRESION
+    | EXPRESION Resta EXPRESION
+    | EXPRESION Multiplicacion EXPRESION
+    | EXPRESION Division EXPRESION
+    | VALOR
+;
+

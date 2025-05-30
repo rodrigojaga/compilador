@@ -1,4 +1,3 @@
-
 package analizador;
 
 import java.io.File;
@@ -12,63 +11,67 @@ public class Principal {
         String ruta1 =  "C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\"
                 + "analizador\\Lexer.flex";
-        
+
         String ruta2 =  "C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\"
                 + "analizador\\LexerCup.flex";
-        
+
         String[] rutas = {
-            "-parser",
-            "Sintax",
+            "-parser", "Sintax",
             "C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\"
                 + "analizador\\Sintax.cup"
         };
-        generarLexer(ruta1,ruta2,rutas);
-        
+
+        String[] rutas2 = {
+            "-parser", "SintaxSem",
+            "C:\\Users\\rodri\\OneDrive\\Documentos"
+                + "\\NetBeansProjects\\analizadorLexico\\src\\"
+                + "analizador\\semantico\\SintaxSem.cup"
+        };
+
+        generarLexer(ruta1, ruta2, rutas, rutas2);
     }
-    
-    public static void generarLexer(String ruta1, String ruta2, String[] rutas) throws IOException, Exception{
-        File archivo; 
-        archivo = new File(ruta1);
-        JFlex.Main.generate(archivo);
-        archivo = new File(ruta2);
-        JFlex.Main.generate(archivo);
-        
+
+    public static void generarLexer(String ruta1, String ruta2, String[] rutas, String[] rutas2) throws IOException, Exception {
+        // Generar analizadores léxicos
+        JFlex.Main.generate(new File(ruta1));
+        JFlex.Main.generate(new File(ruta2));
+
+        // Generar analizadores sintácticos
         java_cup.Main.main(rutas);
-        
+        java_cup.Main.main(rutas2);
+
+        // Mover archivo sym.java a la carpeta correcta si es necesario
         Path rutaSym = Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\sym.java");
-        
-        if(Files.exists(rutaSym))
+
+        if (Files.exists(rutaSym)) {
             Files.delete(rutaSym);
-        
+        }
+
         Files.move(
-                Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
-                + "\\NetBeansProjects\\analizadorLexico\\sym.java"), 
-                Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
-                + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\sym.java")
+            Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                + "\\NetBeansProjects\\analizadorLexico\\sym.java"),
+            rutaSym
         );
-        
+
+        // Mover Sintax.java si fue generado fuera de la carpeta src
         Path rutaSintax = Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
                 + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\Sintax.java");
-        
-        if(Files.exists(rutaSintax))
+
+        if (Files.exists(rutaSintax)) {
             Files.delete(rutaSintax);
-        
+        }
+
         Files.move(
-                Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
-                + "\\NetBeansProjects\\analizadorLexico\\Sintax.java"), 
-                Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
-                + "\\NetBeansProjects\\analizadorLexico\\src\\analizador\\Sintax.java")
+            Paths.get("C:\\Users\\rodri\\OneDrive\\Documentos"
+                + "\\NetBeansProjects\\analizadorLexico\\Sintax.java"),
+            rutaSintax
         );
+
+        // 🔴 NOTA: NO necesitas mover SintaxSem.java si usaste correctamente el package:
+        // package analizador.semantico;
+        // CUP lo generará directamente en la carpeta src/analizador/semantico
     }
 }
-
-// En Lexer.flex
-/*
--?{D}+(\.{D}+)? {lexeme=yytext(); return Numero;}
--? → Opcionalmente, permite un signo negativo (-).
-{D}+ → Uno o más dígitos (ej. 123).
-(\.{D}+)? → Opcionalmente, permite decimales (. seguido de uno o más dígitos, como 3.14).
-*/

@@ -490,6 +490,11 @@ public class frmPrincipal extends javax.swing.JFrame {
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("ANALIZADOR SEMANTICO"));
 
         jButton4.setText("ANALIZAR");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         jButton5.setText("jButton5");
 
@@ -594,6 +599,33 @@ public class frmPrincipal extends javax.swing.JFrame {
     private void txtLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtLimpiarActionPerformed
         txtAnalisisSin.setText(null);
     }//GEN-LAST:event_txtLimpiarActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        String ST = txtLexDe.getText();
+        SintaxSem s = new SintaxSem(new analizador.LexerCup(new StringReader(ST)));
+
+        try {
+            s.parse();
+
+            if (s.hayErrores()) {
+                StringBuilder sb = new StringBuilder("Errores encontrados:\n");
+                for (String error : s.erroresSemanticos) {
+                    sb.append(error).append("\n");
+                }
+                // También puede haber error sintáctico
+                if (s.getS() != null) {
+                    sb.append("Error sintáctico en línea ").append(s.getS().left + 1).append("\n");
+                }
+                txtAnalisisSem.setText(sb.toString());
+            } else {
+                txtAnalisisSem.setText("Sin errores");
+            }
+
+        } catch (Exception ex) {
+            txtAnalisisSem.setText("Se produjo un error durante el análisis:\n" + ex.getMessage());
+            ex.printStackTrace(); // También útil para consola
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     
     public static void main(String args[]) {
