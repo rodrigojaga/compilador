@@ -79,7 +79,7 @@ espacio=[ ,\t,\r,\n]+
 ( ">" | "<" | "==" | "!=" | ">=" | "<=" | "<<" | ">>" ) {return new Symbol(sym.Op_relacional, yychar, yyline, yytext());}
 
 /* Operadores Atribucion */
-( "+=" | "-="  | "*=" | "/=" | "%=" | "=" ) {return new Symbol(sym.Op_atribucion, yychar, yyline, yytext());}
+( "+=" | "-="  | "*=" | "/=" | "%=") {return new Symbol(sym.Op_atribucion, yychar, yyline, yytext());}
 
 /* Operadores Incremento y decremento */
 ( "++" | "--" ) {return new Symbol(sym.Op_incremento, yychar, yyline, yytext());}
