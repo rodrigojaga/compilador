@@ -208,7 +208,16 @@ public class frmPrincipal extends javax.swing.JFrame {
                 case Cadena:
                     resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
                     break;
-                case T_dato:
+                case Int:
+                    resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
+                    break;
+                case Doub:
+                    resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
+                    break;
+                case Bool:
+                    resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
+                    break;
+                case Float:
                     resultado += "  <Tipo de dato>\t" + lexer.lexeme + "\n";
                     break;
                 case If:
@@ -524,16 +533,63 @@ public class frmPrincipal extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         String ST = txtLexDe.getText();
         Sintax s = new Sintax(new analizador.LexerCup(new StringReader(ST)));
-        
+
         try {
             s.parse();
-            txtAnalisisSin.setText("Analisis realizado correctamente");
-            txtAnalisisSin.setForeground(new Color(25, 111, 61));
+
+            if (s.hayErrores()) {
+                StringBuilder sb = new StringBuilder("Errores encontrados:\n");
+                for (String error : s.erroresSemanticos) {
+                    sb.append(error).append("\n");
+                }
+                // También puede haber error sintáctico
+                if (s.getS() != null) {
+                    sb.append("Error sintáctico en línea ").append(s.getS().left + 1).append("\n");
+                }
+                txtAnalisisSin.setText(sb.toString());
+            } else {
+                txtAnalisisSin.setText("Sin errores");
+            }
+
         } catch (Exception ex) {
-            Symbol sym = s.getS();
-            txtAnalisisSin.setText("Error de sintaxis. Linea: " + (sym.right + 1) + " Columna: " + (sym.left + 1) + ", Texto: \"" + sym.value + "\"");
-            txtAnalisisSin.setForeground(Color.red);
+            txtAnalisisSin.setText("Se produjo un error durante el análisis:\n" + ex.getMessage());
+            ex.printStackTrace(); // También útil para consola
         }
+
+        
+        
+
+        
+        // Después de realizar el análisis (parsing), verifica si hay errores
+//        if (s.hayErrores()) {
+//            txtAnalisisSin.setText("Sin errores");
+//        }else{
+//            
+//            System.out.println("Errores encontrados: " + s.erroresSemanticos.size());
+//            for (String error : s.erroresSemanticos) {
+//                System.out.println(error);
+//            }           
+//
+//            
+////            txtAnalisisSin.setText("Errores encontrados: \n");
+////            for (String error : s.erroresSemanticos) {
+////                txtAnalisisSin.setText(error + "\n");
+////            }
+//        }
+        
+        
+        
+//        try {
+//            
+//            
+////            s.parse();
+////            txtAnalisisSin.setText("Analisis realizado correctamente");
+////            txtAnalisisSin.setForeground(new Color(25, 111, 61));
+//        } catch (Exception ex) {
+//            Symbol sym = s.getS();
+//            txtAnalisisSin.setText("Error de sintaxis. Linea: " + (sym.right + 1) + " Columna: " + (sym.left + 1) + ", Texto: \"" + sym.value + "\"");
+//            txtAnalisisSin.setForeground(Color.red);
+//        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void txtLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtLimpiarActionPerformed

@@ -25,13 +25,8 @@ parser code
         return this.s != null || !erroresSemanticos.isEmpty();
     }
     
-    public void imprimirErrores() {
-        if (this.s != null) {
-            System.out.println("Error sintáctico encontrado");
-        }
-        for (String error : erroresSemanticos) {
-            System.out.println(error);
-        }
+    public List<String> imprimirErrores() {
+        return erroresSemanticos;
     }
     
     public void agregarErrorSemantico(int linea, String mensaje) {
@@ -109,7 +104,7 @@ terminal
 
 /* No terminales reorganizados */
 non terminal 
-    INICIO, CLASE, CUERPO_CLASE,
+    INICIO, CLASEN, CUERPO_CLASE,
     SENTENCIAS, SENTENCIA, 
     DECLARACION, ASIGNACION, TIPO_VAR, 
     EXPRESION, VALOR, CONDICION,
@@ -124,10 +119,10 @@ precedence left Multiplicacion, Division;
 start with INICIO;
 
 /* Gramática simplificada */
-INICIO ::= CLASE;
+INICIO ::= CLASEN;
 
-CLASE ::= 
-    Public Class Identificador Llave_a 
+CLASEN ::= 
+    Public Clase Identificador Llave_a 
         {: parser.ambitos.push("clase"); :}
         CUERPO_CLASE 
         {: parser.ambitos.pop(); :}
@@ -153,7 +148,12 @@ SENTENCIA ::=
     DECLARACION 
     | ASIGNACION 
     | BLOQUE
+    | ERROR P_coma
+    {: 
+        parser.agregarErrorSemantico(0, "Sentencia no válida, error sintáctico ignorado.");
+    :}
 ;
+
 
 BLOQUE ::= 
     Llave_a {: parser.ambitos.push("bloque"); :} 
@@ -162,33 +162,35 @@ BLOQUE ::=
     Llave_c
 ;
 
-DECLARACION ::= 
+DECLARACION ::=
     TIPO_VAR:tipo Identificador:id 
-    (P_coma 
+        P_coma 
         {: 
-            parser.declararVariable(id.toString(), 
-                           tipo.toString(), 
-                           ((Symbol)id).left + 1); 
+            parser.declararVariable(id.toString(), tipo.toString(), idleft + 1);
+            
+            
+
         :}
-    | Igual VALOR:val P_coma 
-        {: 
-            // 1. Declarar la variable
-            parser.declararVariable(id.toString(), 
-                           tipo.toString(), 
-                           ((Symbol)id).left + 1);
+    |
+    TIPO_VAR:tipo Identificador:id 
+        Igual VALOR:val P_coma 
+        {:
+            // Declaración
+            parser.declararVariable(id.toString(), tipo.toString(), idleft + 1);
 
-            // 2. Verificación de tipos
-            String tipoDeclarado = tipo.toString();
-            String tipoValor = parser.obtenerTipoDeValor(val);  // Función auxiliar
 
-            if (!parser.esAsignacionValida(tipoDeclarado, tipoValor)) {
-                parser.agregarErrorSemantico(((Symbol)id).left + 1,
+            // Verificación de tipos
+            String tipoVar = tipo.toString();
+            String tipoValor = parser.obtenerTipoDeValor(val);
+
+            if (!parser.esAsignacionValida(tipoVar, tipoValor)) {
+                parser.agregarErrorSemantico(idleft + 1,
                     "Error de tipos: no se puede asignar " + tipoValor + 
-                    " a variable de tipo " + tipoDeclarado);
+                    " a variable de tipo " + tipoVar);
             }
         :}
-    )
 ;
+
 
 TIPO_VAR ::= 
     Int {: RESULT = "int"; :}
@@ -204,26 +206,40 @@ ASIGNACION ::=
     Identificador:id Op_atribucion VALOR:val P_coma 
         {: 
             parser.verificarVariable(id.toString(), 
-                            ((Symbol)id).left + 1);
+                            idleft + 1);
             // Verificación de tipos aquí
         :}
 ;
 
 VALOR ::= 
     Identificador:id 
-        {: parser.verificarVariable(id.toString(), 
-                           ((Symbol)id).left + 1); :}
-    | Numero 
-    | Op_booleano 
-    | Comillas Identificador Comillas 
+        {: 
+            parser.verificarVariable(id.toString(), idleft + 1);
+            RESULT = id.toString(); 
+        :}
+    | Numero:n 
+        {: 
+            try {
+                int numero = Integer.parseInt(n.toString());
+                RESULT = numero;
+            } catch (NumberFormatException e) {
+                RESULT = n.toString(); // fallback
+            }
+        :}
+    | Op_booleano:b 
+        {: RESULT = b.toString(); :}
+    | Comillas Identificador:id Comillas 
+        {: RESULT = "\"" + id.toString() + "\""; :}
     | Comillas Comillas
+        {: RESULT = "\"\""; :}
 ;
+
 
 CONDICION ::= 
     Op_booleano 
     | Identificador:id 
         {: parser.verificarVariable(id.toString(), 
-                           ((Symbol)id).left + 1); :}
+                           idleft + 1); :}
     | EXPRESION Op_relacional EXPRESION
 ;
 
